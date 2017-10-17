@@ -48,20 +48,11 @@ if [ $? -eq 0 ]; then
 	echo "Linking new binaries..."
 	brew link php$newversion
 
-	echo "Linking new modphp addon..."
-	sudo ln -sf `brew list php$newversion | grep libphp` /usr/local/lib/libphp${majorNew}.so
+	echo "Stopping php-fpm..."
+	launchctl unload -w /usr/local/opt/php${currentversion}/homebrew.mxcl.php${currentversion}.plist
 
-	echo "Fixing LoadModule..."
-	apacheConf=`httpd -V | grep -i server_config_file | cut -d '"' -f 2`
-	sudo sed -i -e "/LoadModule php${majorOld}_module/s/^#*/#/" $apacheConf
-
-	if grep "LoadModule php${majorNew}_module .*php${newversion}" $apacheConf > /dev/null
-	then 
-		sudo sed -i -e "/LoadModule php${majorNew}_module .*php${newversion}/s/^#//" $apacheConf
-	else
-		sudo sed -i -e "/LoadModule php${majorNew}_module/s/^#//" $apacheConf
-	fi
-
+	echo "Starting php-fpm..."
+	launchctl load -w /usr/local/opt/php${newversion}/homebrew.mxcl.php${newversion}.plist
 
 	echo "Updating version file..."
 
